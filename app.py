@@ -16,6 +16,12 @@ try:
 except LookupError:
     nltk.download('punkt')
 
+# New fix: handle missing 'punkt_tab' (required by newer NLTK)
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab')
+
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
@@ -28,10 +34,13 @@ def transform_text(text):
     text = text.lower()
     text = nltk.word_tokenize(text)
 
+    # Keep only alphanumeric words
     y = [i for i in text if i.isalnum()]
 
+    # Remove stopwords and punctuation
     y = [i for i in y if i not in stopwords.words('english') and i not in string.punctuation]
 
+    # Apply stemming
     y = [ps.stem(i) for i in y]
 
     return " ".join(y)
@@ -60,7 +69,7 @@ except Exception as e:
     st.stop()
 
 # ========== Streamlit App ==========
-st.title("📩 Email/SMS Spam Classifier")
+st.title(" Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the message")
 
@@ -79,7 +88,7 @@ if st.button('Predict'):
             if result == 1:
                 st.header("🚨 Spam")
             else:
-                st.header("✅ Not Spam")
+                st.header(" Not Spam")
         except Exception as e:
             logging.exception(f"Prediction error: {e}")
             st.error(f"Error during prediction: {e}")
