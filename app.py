@@ -4,12 +4,18 @@ import string
 from nltk.corpus import stopwords
 import nltk
 from nltk.stem.porter import PorterStemmer
+import os
+import logging
 
-# ensure required NLTK data is available
+# ========== Setup Logging ==========
+logging.basicConfig(level=logging.INFO)
+
+# ========== NLTK Data Setup ==========
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
     nltk.download('punkt')
+
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
@@ -17,53 +23,63 @@ except LookupError:
 
 ps = PorterStemmer()
 
-
+# ========== Text Transformation Function ==========
 def transform_text(text):
     text = text.lower()
     text = nltk.word_tokenize(text)
 
-    y = []
-    for i in text:
-        if i.isalnum():
-            y.append(i)
+    y = [i for i in text if i.isalnum()]
 
-    text = y[:]
-    y.clear()
+    y = [i for i in y if i not in stopwords.words('english') and i not in string.punctuation]
 
-    for i in text:
-        if i not in stopwords.words('english') and i not in string.punctuation:
-            y.append(i)
-
-    text = y[:]
-    y.clear()
-
-    for i in text:
-        y.append(ps.stem(i))
+    y = [ps.stem(i) for i in y]
 
     return " ".join(y)
 
-tfidf = pickle.load(open(r'.\vectorizer.pkl', 'rb'))
-model = pickle.load(open(r'.\model.pkl', 'rb'))
+# ========== Safe Path Setup ==========
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+VECT_PATH = os.path.join(BASE_DIR, 'vectorizer.pkl')
+MODEL_PATH = os.path.join(BASE_DIR, 'model.pkl')
 
-st.title("Email/SMS Spam Classifier")
+logging.info(f"BASE_DIR: {BASE_DIR}")
+logging.info(f"Files in BASE_DIR: {os.listdir(BASE_DIR)}")
+
+# ========== Load Pickle Files Safely ==========
+try:
+    with open(VECT_PATH, 'rb') as f:
+        tfidf = pickle.load(f)
+    logging.info(f"Vectorizer loaded from {VECT_PATH}")
+
+    with open(MODEL_PATH, 'rb') as f:
+        model = pickle.load(f)
+    logging.info(f"Model loaded from {MODEL_PATH}")
+
+except Exception as e:
+    logging.exception(f"Error loading model/vectorizer: {e}")
+    st.error("Failed to load model files. Please check server logs.")
+    st.stop()
+
+# ========== Streamlit App ==========
+st.title("📩 Email/SMS Spam Classifier")
 
 input_sms = st.text_area("Enter the message")
 
 if st.button('Predict'):
-    if not input_sms:
+    if not input_sms.strip():
         st.warning("Please enter a message to predict.")
     else:
         try:
-            # 1. preprocess
+            # 1. Preprocess
             transformed_sms = transform_text(input_sms)
-            # 2. vectorize
-            vector_input = tfidf.transform([transformed_sms]).toarray()  # Convert sparse → dense            
-            # 3. predict
+            # 2. Vectorize
+            vector_input = tfidf.transform([transformed_sms]).toarray()
+            # 3. Predict
             result = model.predict(vector_input)[0]
             # 4. Display
             if result == 1:
-                st.header("Spam")
+                st.header("🚨 Spam")
             else:
-                st.header("Not Spam")
+                st.header("✅ Not Spam")
         except Exception as e:
+            logging.exception(f"Prediction error: {e}")
             st.error(f"Error during prediction: {e}")
