@@ -116,5 +116,10 @@ You are free to **use, modify, and distribute** it with proper attribution.
 
 ---
 
-Would you like me to customize it further with your **Render app link** and **LinkedIn profile URL** before finalizing it for upload?
+
+
+## ⭐ Support
+
+If you found this project helpful, consider giving it a **star** ⭐ on GitHub — it helps others discover the project and motivates me to keep improving it!
+
 
