@@ -57,16 +57,19 @@ Users can simply type or paste a message into the app, and the classifier instan
 ---
 
 ## 📂 Project Structure
+
+```text
 sms-spam-classifier/
 │
-├── app.py # Streamlit web app
-├── sms-spam-detection.ipynb # Model training notebook
-├── vectorizer.pkl # Saved TF-IDF vectorizer
-├── model.pkl # Saved trained model (Stacking Classifier)
-├── spam.csv # Dataset used for training
-└── requirements.txt # Python dependencies
+├── app.py                     # Streamlit web app
+├── sms-spam-detection.ipynb   # Model training notebook
+├── vectorizer.pkl             # Saved TF-IDF vectorizer
+├── model.pkl                  # Saved trained model (Stacking Classifier)
+├── spam.csv                   # Dataset used for training
+└── requirements.txt           # Python dependencies
 
 
+```
 
 ---
 
